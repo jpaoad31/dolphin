@@ -18,6 +18,8 @@ add_dolphin_test(FileSystemTest IOS/FS/FileSystemTest.cpp)
 
 add_dolphin_test(SkylandersTest IOS/USB/SkylandersTest.cpp)
 
+add_dolphin_test(BalanceBoardTest HW/WiimoteEmu/BalanceBoardTest.cpp)
+
 if(_M_X86_64)
   add_dolphin_test(PowerPCTest
     PowerPC/DivUtilsTest.cpp
