@@ -3,8 +3,12 @@
 
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
+#include <algorithm>
 #include <iterator>
+#include <span>
 #include <utility>
+
+#include <fmt/ranges.h>
 
 #include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
@@ -38,6 +42,9 @@ void WiimoteBase::HandleReportMode(const OutputReportMode& dr)
   // TODO: A real wiimote sends a report immediately.
   // even on REPORT_CORE and continuous off when the buttons haven't changed.
   // But.. it is sent after the ACK
+
+  DEBUG_LOG_FMT(WIIMOTE, "{}: ReportMode: {:#04x} (continuous: {})", GetName(),
+                static_cast<u8>(dr.mode), static_cast<bool>(dr.continuous));
 
   m_reporting_continuous = dr.continuous;
   m_reporting_mode = dr.mode;
@@ -246,8 +253,10 @@ void WiimoteBase::HandleWriteData(const OutputReportWriteData& wd)
 
   const u16 address = Common::swap16(wd.address);
 
-  DEBUG_LOG_FMT(WIIMOTE, "Wiimote::WriteData: {:#04x} @ {:#04x} @ {:#04x} ({})", wd.space,
-                wd.slave_address, address, wd.size);
+  DEBUG_LOG_FMT(
+      WIIMOTE, "{}: WriteData: {:#04x} @ {:#04x} @ {:#04x} ({}): {:02x}", GetName(), wd.space,
+      wd.slave_address, address, wd.size,
+      fmt::join(std::span{wd.data, std::min<std::size_t>(wd.size, sizeof(wd.data))}, " "));
 
   if (0 == wd.size || wd.size > 16)
   {
@@ -401,7 +410,7 @@ void WiimoteBase::HandleReadData(const OutputReportReadData& rd)
   // A zero size request is just ignored, like on the real wiimote.
   m_read_request.size = Common::swap16(rd.size);
 
-  DEBUG_LOG_FMT(WIIMOTE, "Wiimote::ReadData: {} @ {:#04x} @ {:#04x} ({})",
+  DEBUG_LOG_FMT(WIIMOTE, "{}: ReadData: {} @ {:#04x} @ {:#04x} ({})", GetName(),
                 static_cast<u8>(m_read_request.space), m_read_request.slave_address,
                 m_read_request.address, m_read_request.size);
 
