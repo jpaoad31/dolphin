@@ -1072,6 +1072,9 @@ void BalanceBoard::LoadDefaults(const ControllerInterface& ciface)
   // Feet
   // TODO:
 
+  // Step Off Toggle
+  m_hotkeys->SetControlExpression(0, "O");
+
   // Because our defaults use keyboard input, set calibration shape to a square.
   m_balance->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
 }
@@ -1118,7 +1121,7 @@ BalanceBoard::BalanceBoard(const u8 index) : WiimoteBase(index)
                         {_trans("Battery"),
                          // i18n: The percent symbol.
                          _trans("%")},
-                        95, 0, 100);
+                        100, 0, 100);
 
   m_options->AddSetting(&m_weight_setting,
                         {_trans("Weight"),
@@ -1142,7 +1145,20 @@ BalanceBoard::BalanceBoard(const u8 index) : WiimoteBase(index)
                          _trans("cm")},
                         DEFAULT_FOOT_LENGTH, 0, 40);
 
+  // Hotkeys
+  groups.emplace_back(m_hotkeys = new ControllerEmu::ModifySettingsButton(_trans("Hotkeys")));
+  // Removes all weight from the board until pressed again, e.g. for games that ask the user to
+  // step off the board to measure the zero point.
+  m_hotkeys->AddInput(_trans("Step Off Toggle"), true);
+  m_hotkeys->AddInput(_trans("Step Off Hold"), false);
+
   Reset();
+}
+
+bool BalanceBoard::IsSteppedOff() const
+{
+  const auto& modifiers = m_hotkeys->GetSettingsModifier();
+  return modifiers[0] ^ modifiers[1];
 }
 
 ControllerEmu::ControlGroup* BalanceBoard::GetBalanceBoardGroup(BalanceBoardGroup group) const
@@ -1159,6 +1175,8 @@ ControllerEmu::ControlGroup* BalanceBoard::GetBalanceBoardGroup(BalanceBoardGrou
     return m_left_foot;
   case BalanceBoardGroup::RightFoot:
     return m_right_foot;
+  case BalanceBoardGroup::Hotkeys:
+    return m_hotkeys;
   default:
     ASSERT(false);
     return nullptr;
@@ -1193,6 +1211,9 @@ void BalanceBoard::UpdateBatteryStatus(double charge)
 
 void BalanceBoard::BuildDesiredWiimoteState(DesiredWiimoteState* target_state, SensorBarState)
 {
+  // Hotkey / settings modifier. Data is later accessed in IsSteppedOff.
+  m_hotkeys->UpdateState();
+
   m_buttons->GetState(&target_state->buttons.hex, bboard_bitmasks, m_input_override_function);
 
   // Accel data is static.

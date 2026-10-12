@@ -73,6 +73,7 @@ enum class BalanceBoardGroup
   LeftFoot,
   RightFoot,
   Options,
+  Hotkeys,
 };
 
 enum class NunchukGroup;
@@ -408,6 +409,9 @@ public:
 
   explicit BalanceBoard(u8 index);
 
+  // True while the "Step Off" hotkey has the user standing off the board (no weight applied).
+  bool IsSteppedOff() const;
+
   ControllerEmu::ControlGroup* GetBalanceBoardGroup(BalanceBoardGroup group) const;
 
   InputConfig* GetConfig() const override;
@@ -444,6 +448,7 @@ private:
   ControllerEmu::ControlGroup* m_left_foot;
   ControllerEmu::ControlGroup* m_right_foot;
   ControllerEmu::ControlGroup* m_options;
+  ControllerEmu::ModifySettingsButton* m_hotkeys;
 
   ControllerEmu::SettingValue<double> m_weight_setting;
   ControllerEmu::SettingValue<double> m_foot_separation_setting;

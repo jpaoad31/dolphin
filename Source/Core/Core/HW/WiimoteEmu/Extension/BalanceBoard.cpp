@@ -60,15 +60,14 @@ void BalanceBoardExt::BuildDesiredExtensionState(DesiredExtensionState* target_s
   const double amt_r = std::clamp(1 + balance_state.x, 0.0, down_r * 2);
 
   // How much the foot is on the board.
-  const double on_board_l = std::max(1 - foot_l, 0.0);
-  const double on_board_r = std::max(1 - foot_r, 0.0);
+  // The "Step Off" hotkey takes both feet off.
+  const bool stepped_off = m_owner->IsSteppedOff();
+  const double on_board_l = stepped_off ? 0.0 : std::max(1 - foot_l, 0.0);
+  const double on_board_r = stepped_off ? 0.0 : std::max(1 - foot_r, 0.0);
 
   // What percent of weight each foot is putting on the board.
   const double weight_l = amt_l * on_board_l;
   const double weight_r = amt_r * on_board_r;
-
-  INFO_LOG_FMT(WIIMOTE, "f: {:.2f} {:.2f} b: {:.2f} {:.2f} w: {:.2f} {:.2f}", amt_l, amt_r,
-               on_board_l, on_board_r, weight_l, weight_r);
 
   // Distance between the feet on the bottom of the board.
   constexpr auto SENSOR_DISTANCE = Common::DVec2{43, 24};

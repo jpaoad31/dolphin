@@ -7,8 +7,10 @@
 #include <QFormLayout>
 #include <QGridLayout>
 #include <QGroupBox>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QVBoxLayout>
 
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -26,7 +28,12 @@ BalanceBoardGeneral::BalanceBoardGeneral(MappingWindow* window) : MappingWidget(
 
   layout->addWidget(CreateGroupBox(tr("Buttons"), get_group(GetPort(), BBG::Buttons)));
   layout->addWidget(CreateGroupBox(tr("Balance"), get_group(GetPort(), BBG::Balance)));
-  layout->addWidget(CreateGroupBox(tr("Options"), get_group(GetPort(), BBG::Options)));
+
+  auto* options_layout = new QVBoxLayout;
+  options_layout->addWidget(CreateGroupBox(tr("Options"), get_group(GetPort(), BBG::Options)));
+  options_layout->addWidget(CreateGroupBox(tr("Hotkeys"), get_group(GetPort(), BBG::Hotkeys)));
+  layout->addLayout(options_layout);
+
   layout->addWidget(CreateGroupBox(tr("Left Foot"), get_group(GetPort(), BBG::LeftFoot)));
   layout->addWidget(CreateGroupBox(tr("Right Foot"), get_group(GetPort(), BBG::RightFoot)));
 
